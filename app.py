@@ -44,6 +44,9 @@ def put_json():
     except ValidationError as ve:
         abort(400, str(ve))
 
+# Grabs the data in the inbound JSON message,
+# extracts the number and body and dumps to disk
+# in correct format for SMSD to hoover up.
 @route('/sendsms', method='PUT')
 def send_sms():
     recipient = request.json['recipient']
@@ -56,10 +59,19 @@ def send_sms():
         abort(400, 'No Message Body Defined')
     
     try:
-        return {"recipient": recipient, "body": body}
+        #return {"recipient": recipient, "body": body}
+        sms_message = open('sms-1', 'w')
+        print recipient
+        print body
+        sms_message.write("To: " + str(recipient) + '\n\n')
+        sms_message.write(body + '\n')
+        sms_message.close()
         
-    except ValidationError as ve:
-        abort(400, str(ve))
+    except:
+        print ("epic fail")
+            
+    #except ValidationError as ve:
+    #    abort(400, str(ve))
             
 
 run(host='localhost', port=8080)

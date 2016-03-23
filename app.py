@@ -4,6 +4,12 @@
 # am saving locally and importing from there.
 
 from lib.bottle import route, run, template, request, get, post
+from lib.shortuuid import uuid
+
+def rand_fname(suffix):
+    # Generate a random filename using the shortuuid lib
+    fname = 'sms-' + ''.join(uuid() + '-' + suffix + '.smsmsg')
+    return fname
 
 @route('/hello/<name>')
 def index(name):
@@ -51,6 +57,7 @@ def put_json():
 def send_sms():
     recipient = request.json['recipient']
     body = request.json['body']
+    file_name = rand_fname("alert")
     
     if not recipient:
         abort(400, 'No Recipient Defined')
@@ -60,7 +67,7 @@ def send_sms():
     
     try:
         #return {"recipient": recipient, "body": body}
-        sms_message = open('sms-1', 'w')
+        sms_message = open(file_name, 'w')
         print recipient
         print body
         sms_message.write("To: " + str(recipient) + '\n\n')

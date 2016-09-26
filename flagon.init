@@ -1,0 +1,32 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006 OpenWrt.org
+#set -vx
+
+START=99
+
+PIDFILE="/var/run/flagon.pid"
+CONFFILE="/etc/smsd.conf"
+
+BASE_DIR="/sdcard/flagon"
+PYTHON_BIN="/sdcard/usr/bin/python"
+
+if [ ! -d "$BASE_DIR" ]
+then
+  echo "Flagon dir not found. Exiting..."
+  exit 0
+fi
+
+start() {
+  echo "Starting Flagon"
+  cd $BASE_DIR
+  $PYTHON_BIN app.py &
+  PID=`ps -ef | grep '/sdcard/usr/bin/[p]ython app.py' | awk '{print $1}'`
+  echo $PID > $PIDFILE
+  echo "Flagon Started"
+}
+
+stop() {
+	[ -f "$PIDFILE" ] && kill $(cat "$PIDFILE") 2>/dev/null >/dev/null && echo "Flagon Stopped"
+}
+
+# EOF

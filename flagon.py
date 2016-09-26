@@ -6,6 +6,25 @@
 from lib.bottle import route, run, template, request, get, post
 from lib.shortuuid import uuid
 
+# OK, so python2.5 doesn't come with json OOTB, so add simplejson
+import lib.simplejson
+
+import socket
+
+# Seems the FoxBoard doesn't like this.
+# socket.gaierror: (7, 'no address associated with hostname.')
+# Guess CrisOS (very old OpenWRT fork) doesn't assign an address in the same way.
+# Until I work out a fix, set manually
+local_ip = "10.200.1.46"
+#local_ip = socket.gethostbyname(socket.gethostname())
+
+# I'm using SMSD to send/receive SMS alerts.
+# It uses a series of directories as static queues to send and store messages.
+# Where the SMS queues are located.
+outbound_queue_path = "/var/spool/sms/outgoing/"
+inbound_queue_path = "/var/spool/sms/incoming/"
+
+
 def rand_fname(suffix):
     # Generate a random filename using the shortuuid lib
     fname = 'sms-' + ''.join(uuid() + '-' + suffix + '.smsmsg')
@@ -24,32 +43,6 @@ def json(id):
     id=id
     return { "id": id, "name": "Test Item " + str(id) }
 
-@route('/documents', method='PUT')
-def put_document():
-    data = request.body.readline()
-    if not data:
-        abort(400, 'No data received')
-#    entity = json.loads(data)
-#    if not entity.has_key('id'):
-#        abort(400, 'No id specified')
-    try:
-        return { data }
-
-#        db['documents'].save(entity)
-    except ValidationError as ve:
-        abort(400, str(ve))
-
-@route('/jsontest', method='PUT')
-def put_json():
-    data = request.json()
-    if not data:
-        abort(400, 'No data received')
-    try:
-        #return { data }
-        return { data.id }
-    except ValidationError as ve:
-        abort(400, str(ve))
-
 # Grabs the data in the inbound JSON message,
 # extracts the number and body and dumps to disk
 # in correct format for SMSD to hoover up.
@@ -58,27 +51,26 @@ def send_sms():
     recipient = request.json['recipient']
     body = request.json['body']
     file_name = rand_fname("alert")
-    
+    outbound_path = outbound_queue_path + file_name
+    print "Outbound Path: " + outbound_path
+
     if not recipient:
         abort(400, 'No Recipient Defined')
-        
+
     if not body:
         abort(400, 'No Message Body Defined')
-    
+
     try:
         #return {"recipient": recipient, "body": body}
-        sms_message = open(file_name, 'w')
+        sms_message = open(outbound_path, 'w')
         print recipient
         print body
         sms_message.write("To: " + str(recipient) + '\n\n')
         sms_message.write(body + '\n')
         sms_message.close()
-        
+
     except:
         print ("epic fail")
-            
-    #except ValidationError as ve:
-    #    abort(400, str(ve))
-            
 
-run(host='localhost', port=8080)
+
+run(host=local_ip, port=8080)

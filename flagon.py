@@ -10,7 +10,6 @@ from lib.shortuuid import uuid
 import lib.simplejson
 
 import socket
-
 # Seems the FoxBoard doesn't like this.
 # socket.gaierror: (7, 'no address associated with hostname.')
 # Guess CrisOS (very old OpenWRT fork) doesn't assign an address in the same way.
@@ -23,6 +22,13 @@ local_ip = "10.200.1.46"
 # Where the SMS queues are located.
 outbound_queue_path = "/var/spool/sms/outgoing/"
 inbound_queue_path = "/var/spool/sms/incoming/"
+
+# Standard Logging doesn't work as Bottle leverages the built-in WSGI Server implementation.
+#import sys
+#logfile = "/var/log/flagon.log"
+#sys.stdout = open(logfile, 'w')
+
+print 'Starting Flagon...'
 
 
 def rand_fname(suffix):
